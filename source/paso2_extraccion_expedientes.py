@@ -32,7 +32,7 @@ Descripción:
     6. Exporta el dataset final consolidado a:
        'dataset/licitaciones_o_accidentes_ntsb_2023_2024.csv' (UTF-8 con BOM).
 
-Autor: Duván Quevedo (dquevedoagu@uoc.edu)
+Autores: Duván Quevedo (dquevedoagu@uoc.edu), Neydor Avila (navilana@uoc.edu)
 =============================================================================
 """
 
@@ -53,7 +53,7 @@ if sys.platform == "win32":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # Configuración institucional y parámetros de cortesía
-USER_AGENT = "UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu)"
+USER_AGENT = "UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu, navilana@uoc.edu)"
 COURTESY_DELAY_DEFAULT = 1.0  # Retardo entre peticiones para scraping responsable
 API_ENDPOINT_TEMPLATE = "https://web.ntsb.gov/_api/serverlogics/case-api?ntsbnumber={}"
 

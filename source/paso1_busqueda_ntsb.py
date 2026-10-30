@@ -16,7 +16,7 @@ Descripción:
     5. Extrae una muestra masiva (>200 expedientes) y almacena las URLs e IDs
        en 'source/expedientes_ntsb.json'.
 
-Autor: Duván Quevedo (dquevedoagu@uoc.edu)
+Autores: Duván Quevedo (dquevedoagu@uoc.edu), Neydor Avila (navilana@uoc.edu)
 =============================================================================
 """
 
@@ -41,7 +41,7 @@ if sys.platform == "win32":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # Constantes de configuración metodológica y ética UOC
-USER_AGENT = "UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu)"
+USER_AGENT = "UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu, navilana@uoc.edu)"
 COURTESY_DELAY_SECONDS = 2.5
 NTSB_ROBOTS_URL = "https://www.ntsb.gov/robots.txt"
 NTSB_SEARCH_URL = "https://my.ntsb.gov/aviation"

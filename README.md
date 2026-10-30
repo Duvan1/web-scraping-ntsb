@@ -22,8 +22,9 @@ El dataset resultante se exporta en formato CSV (`utf-8-sig`) en la carpeta `/da
 
 ## 2. Autores y Filiación Académica
 
-* **Autor:** Duván Quevedo
-* **Contacto institucional:** `dquevedoagu@uoc.edu`
+* **Autores:**
+  * **Duván Quevedo** — `dquevedoagu@uoc.edu`
+  * **Neydor Avila** — `navilana@uoc.edu`
 * **Programa:** Máster Universitario en Ciencia de Datos
 * **Centro:** Universitat Oberta de Catalunya (UOC)
 
@@ -146,7 +147,7 @@ El diseño y ejecución de esta práctica se rigen rigurosamente por los princip
 3. **Identificación Transparente (User-Agent Institucional):**
    - Todas las peticiones HTTP (tanto en Selenium como en Requests) incluyen un encabezado de cabecera institucional claro:
      ```http
-     User-Agent: UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu)
+     User-Agent: UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu, navilana@uoc.edu)
      ```
    - Permite a los administradores de sistemas identificar la naturaleza académica y no comercial del tráfico, así como el punto de contacto directo.
 
