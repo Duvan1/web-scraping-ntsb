@@ -39,12 +39,17 @@ web-scraping-ntsb/
 ├── .gitignore                                      # Exclusiones de Git (entornos virtuales, temporales)
 ├── README.md                                       # Memoria técnica y documentación académica
 ├── dataset/
-│   └── licitaciones_o_accidentes_ntsb_2023_2024.csv # Dataset final consolidado con tipado estricto
+│   ├── dataset_ntsb_2023_2024.csv                  # Dataset consolidado con tipado estricto
+│   ├── licitaciones_o_accidentes_ntsb_2023_2024.csv # Archivo consolidado alternativo
+│   ├── informe_calidad_dataset.txt                 # Informe textual de completitud, nulos y métricas EDA
+│   ├── grafico_top_fabricantes.png                 # Bar chart con marcas con más siniestros
+│   └── grafico_severidad_accidentes.png            # Distribución de severidad y daño estructural
 └── source/
     ├── requirements.txt                            # Especificación de dependencias de Python
     ├── expedientes_ntsb.json                       # Muestra masiva de URLs e identificadores recuperados
     ├── paso1_busqueda_ntsb.py                      # Script Paso 1: Auditoría robots.txt, búsqueda y paginación
-    └── paso2_extraccion_expedientes.py             # Script Paso 2: Extracción detallada, parsing y exportación
+    ├── paso2_extraccion_expedientes.py             # Script Paso 2: Extracción detallada, parsing y exportación
+    └── validar_dataset.py                          # Script de auditoría de calidad, nulos, tipos y gráficos EDA
 ```
 
 ---
@@ -107,6 +112,13 @@ python source/paso2_extraccion_expedientes.py --limit 60 --delay 1.0
 - `--limit`: Número de registros a procesar del lote (por defecto `60`).
 - `--all`: Procesa la totalidad de expedientes contenidos en el JSON.
 - `--delay`: Retardo de cortesía ética entre peticiones consecutivas en segundos (por defecto `1.0`).
+
+### Etapa 3: Validación de Calidad y Análisis Exploratorio (EDA)
+Audita la integridad del dataset generado, certifica la ausencia de duplicados, calcula el porcentaje de completitud y valores nulos, comprueba el tipado estricto en Pandas y genera gráficos estadísticos (`.png`) e informe de texto (`informe_calidad_dataset.txt`) para la Memoria PDF de la práctica:
+
+```bash
+python source/validar_dataset.py
+```
 
 ---
 
