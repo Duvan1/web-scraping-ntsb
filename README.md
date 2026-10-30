@@ -1,10 +1,13 @@
 # Extracción y Construcción de Dataset de Accidentes de Aviación (NTSB)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23811523.svg)](https://doi.org/10.5281/zenodo.23811523)
+
 **Práctica 1: Web Scraping**  
 **Asignatura:** M2.851 - Tipología y ciclo de vida de los datos  
 **Titulación:** Máster Universitario en Ciencia de Datos  
 **Institución:** Universitat Oberta de Catalunya (UOC)  
 **Semestre:** 2025-2026  
+**DOI del Dataset (Zenodo):** [10.5281/zenodo.23811523](https://doi.org/10.5281/zenodo.23811523)  
 
 ---
 
@@ -22,9 +25,7 @@ El dataset resultante se exporta en formato CSV (`utf-8-sig`) en la carpeta `/da
 
 ## 2. Autores y Filiación Académica
 
-* **Autores:**
-  * **Duván Quevedo** — `dquevedoagu@uoc.edu`
-  * **Neydor Avila** — `navilana@uoc.edu`
+* **Autor:** **Duván Quevedo** — `dquevedoagu@uoc.edu`
 * **Programa:** Máster Universitario en Ciencia de Datos
 * **Centro:** Universitat Oberta de Catalunya (UOC)
 
@@ -159,7 +160,7 @@ El diseño y ejecución de esta práctica se rigen rigurosamente por los princip
 3. **Identificación Transparente (User-Agent Institucional):**
    - Todas las peticiones HTTP (tanto en Selenium como en Requests) incluyen un encabezado de cabecera institucional claro:
      ```http
-     User-Agent: UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu, navilana@uoc.edu)
+     User-Agent: UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu)
      ```
    - Permite a los administradores de sistemas identificar la naturaleza académica y no comercial del tráfico, así como el punto de contacto directo.
 

@@ -27,7 +27,7 @@ Descripción:
     4. Informe de Salida:
        - Impresión estructurada en consola y exportación a 'dataset/informe_calidad_dataset.txt'.
 
-Autores: Duván Quevedo (dquevedoagu@uoc.edu), Neydor Avila (navilana@uoc.edu)
+Autor: Duván Quevedo (dquevedoagu@uoc.edu)
 =============================================================================
 """
 
