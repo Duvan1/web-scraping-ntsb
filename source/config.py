@@ -35,6 +35,7 @@ class ScraperConfig:
     date_from: str = "2023-01-01"
     date_to: str = "2024-12-31"
     target_links: int = 225
+    per_month: int = 0  # >0: muestreo estratificado (N enlaces por mes)
     detail_limit: int = 100
     process_all: bool = False
     headless: bool = True

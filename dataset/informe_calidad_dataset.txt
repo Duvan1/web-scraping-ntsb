@@ -3,54 +3,64 @@ INFORME DE AUDITORÍA DE CALIDAD Y ANÁLISIS EXPLORATORIO (EDA)
 M2.851 - Tipología y ciclo de vida de los datos (UOC)
 ================================================================================
 Archivo analizado: C:\Users\duvan\OneDrive\Documentos\UOC\semestre 2\Tipologia de datos\PRACT 1\pract-web-scrapping\dataset\dataset_ntsb_2023_2024.csv
-Total de registros (filas):    50
-Total de variables (columnas): 14
+Total de registros (filas):    216
+Total de variables (columnas): 20
 
 1. CONTROL DE UNICIDAD E IDENTIFICADORES:
    - Columna identificador evaluada: 'identificador'
-   - Identificadores únicos:         50 de 50
+   - Identificadores únicos:         216 de 216
    - Resultado de unicidad:          CONFIRMADO [100% registros únicos, 0 duplicados]
    - Duplicados globales completos:  0
 
 2. COMPLETITUD Y ANÁLISIS DE VALORES NULOS POR COLUMNA:
    Columna            | Tipo Pandas     | No Nulos  | Nulos  | % Nulos  | Completitud
    --------------------------------------------------------------------------
-   identificador      | string          | 50        | 0      |    0.0% |  100.0%
-   fecha              | datetime64[ns]  | 50        | 0      |    0.0% |  100.0%
-   ubicacion          | string          | 50        | 0      |    0.0% |  100.0%
-   latitud            | float64         | 42        | 8      |   16.0% |   84.0%
-   longitud           | float64         | 42        | 8      |   16.0% |   84.0%
-   fabricante         | string          | 50        | 0      |    0.0% |  100.0%
-   modelo             | string          | 50        | 0      |    0.0% |  100.0%
-   operador           | string          | 45        | 5      |   10.0% |   90.0%
-   fallecidos         | Int64           | 50        | 0      |    0.0% |  100.0%
-   heridos_graves     | Int64           | 50        | 0      |    0.0% |  100.0%
-   danos_aeronave     | string          | 42        | 8      |   16.0% |   84.0%
-   condicion_meteo    | string          | 35        | 15     |   30.0% |   70.0%
-   causa_probable     | string          | 29        | 21     |   42.0% |   58.0%
-   id_evento          | object          | 50        | 0      |    0.0% |  100.0%
+   identificador      | string          | 216       | 0      |    0.0% |  100.0%
+   fecha              | datetime64[ns]  | 216       | 0      |    0.0% |  100.0%
+   estado_investigacion | string          | 216       | 0      |    0.0% |  100.0%
+   ubicacion          | string          | 216       | 0      |    0.0% |  100.0%
+   latitud            | float64         | 164       | 52     |   24.1% |   75.9%
+   longitud           | float64         | 164       | 52     |   24.1% |   75.9%
+   fabricante         | string          | 216       | 0      |    0.0% |  100.0%
+   modelo             | string          | 216       | 0      |    0.0% |  100.0%
+   matricula          | string          | 216       | 0      |    0.0% |  100.0%
+   operador           | string          | 160       | 56     |   25.9% |   74.1%
+   normativa_vuelo    | string          | 163       | 53     |   24.5% |   75.5%
+   danos_aeronave     | string          | 158       | 58     |   26.9% |   73.1%
+   fallecidos         | Int64           | 181       | 35     |   16.2% |   83.8%
+   heridos_graves     | Int64           | 181       | 35     |   16.2% |   83.8%
+   visibilidad_sm     | float64         | 152       | 64     |   29.6% |   70.4%
+   temperatura_f      | float64         | 160       | 56     |   25.9% |   74.1%
+   velocidad_viento_kts | float64         | 129       | 87     |   40.3% |   59.7%
+   causa_probable     | string          | 156       | 60     |   27.8% |   72.2%
+   url_docket         | string          | 216       | 0      |    0.0% |  100.0%
+   url_expediente     | string          | 216       | 0      |    0.0% |  100.0%
 
 3. MÉTRICAS CLAVE Y ANÁLISIS EXPLORATORIO:
-   - Total de víctimas mortales:     237
-   - Máximo de víctimas en un evento: 173
-   - Promedio de víctimas mortales:  4.74
-   - Accidentes con víctimas mortales: 13 (26.0% del total)
-   - Total de heridos graves:        45
+   - Total de víctimas mortales:     49
+   - Máximo de víctimas en un evento: 5
+   - Promedio de víctimas mortales:  0.27
+   - Accidentes con víctimas mortales: 33 (15.3% del total)
+   - Total de heridos graves:        25
 
 4. DISTRIBUCIÓN POR DAÑO EN LA AERONAVE:
-   - Substantial                 : 30 ( 60.0%)
-   - Destroyed                   :  9 ( 18.0%)
-   - No determinado / En proceso :  8 ( 16.0%)
-   - Minor                       :  3 (  6.0%)
+   - Substantial                 : 141 ( 65.3%)
+   - Sin dato                    : 58 ( 26.9%)
+   - Destroyed                   : 15 (  6.9%)
+   - Minor                       :  2 (  0.9%)
 
 5. TOP 5 FABRICANTES MÁS FRECUENTES EN EL DATASET:
-   1. CESSNA                        : 12 eventos
-   2. BOEING                        :  8 eventos
-   3. PIPER                         :  6 eventos
-   4. BEECH                         :  4 eventos
-   5. ROBINSON HELICOPTER           :  2 eventos
+   1. CESSNA                        : 57 eventos
+   2. PIPER                         : 25 eventos
+   3. BOEING                        : 14 eventos
+   4. AIRBUS                        :  8 eventos
+   5. BEECH                         :  8 eventos
 
 6. DICTAMEN DE CONFORMIDAD TÉCNICA:
-   [OK] El dataset cumple rigurosamente con los requisitos de calidad y tipado estricto.
-   [OK] Los gráficos de apoyo para la Memoria PDF han sido generados exitosamente.
+   [OK] Unicidad del identificador: sin duplicados.
+   [OK] Tipado Pandas verificado (string, datetime64[ns], Int64, float64).
+   [AVISO] Columnas con >25% de nulos: velocidad_viento_kts (40%), visibilidad_sm (30%), causa_probable (28%), danos_aeronave (27%), operador (26%), temperatura_f (26%).
+           Los nulos son estructurales: expedientes 'Ongoing'/'Open' aún sin
+           causa probable ni datos finales publicados por la NTSB (no se imputan).
+   [OK] Gráficos de apoyo para la Memoria PDF generados.
 ================================================================================
