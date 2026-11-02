@@ -1,12 +1,12 @@
 # Web Scraping de Accidentes e Incidentes de Aviación Civil (NTSB)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23811523.svg)](https://doi.org/10.5281/zenodo.23811523)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23890895.svg)](https://doi.org/10.5281/zenodo.23890895)
 
 **Práctica 1: Web Scraping**  
 **Asignatura:** M2.851 - Tipología y ciclo de vida de los datos  
 **Titulación:** Máster Universitario en Ciencia de Datos  
 **Institución:** Universitat Oberta de Catalunya (UOC)  
-**DOI del Dataset (Zenodo):** [10.5281/zenodo.23811523](https://doi.org/10.5281/zenodo.23811523)  
+**DOI del Dataset (Zenodo):** [10.5281/zenodo.23890895](https://doi.org/10.5281/zenodo.23890895)  
 
 ---
 
@@ -39,8 +39,9 @@ La arquitectura de recolección se articula en una estrategia metodológica desa
 El conjunto de datos resultante se encuentra publicado en abierto en el repositorio científico **Zenodo**:
 
 * **Título del nodo:** *NTSB Civil Aviation Accident Dataset (2023-2024)*
-* **Identificador DOI:** [`10.5281/zenodo.23811523`](https://doi.org/10.5281/zenodo.23811523)
-* **URL directa del registro:** [https://zenodo.org/records/23811523](https://zenodo.org/records/23811523)
+* **Identificador DOI:** [`10.5281/zenodo.23890895`](https://doi.org/10.5281/zenodo.23890895)
+* **URL directa del registro:** [https://zenodo.org/records/23890895](https://zenodo.org/records/23890895)
+* **Versión:** v2 (muestra estratificada mensual, 216 registros 2023-2024). La v1 (10.5281/zenodo.23811523) contenía una muestra reducida y queda obsoleta.
 * **Autores:** Duván Quevedo y Neydor Gildardo Avila Navarrete
 * **Licencia de los datos:** Creative Commons CC0 1.0 Universal (*Public Domain Dedication*)
 
