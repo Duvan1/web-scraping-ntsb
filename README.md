@@ -127,9 +127,11 @@ web-scraping-ntsb/
 | `--mode` | `{full,discover,extract}` | `full` | `full`: ejecuta auditoría + descubrimiento + extracción DOM; `discover`: solo descubre enlaces; `extract`: extrae fichas desde el JSON previo. |
 | `--date-from` | `YYYY-MM-DD` | `2023-01-01` | Fecha inicial del filtro temporal de sucesos en el buscador CAROL. |
 | `--date-to` | `YYYY-MM-DD` | `2024-12-31` | Fecha final del filtro temporal de sucesos en el buscador CAROL. |
-| `--target` | `int` | `225` | Número mínimo de enlaces únicos a descubrir recorriendo la paginación dinámica (~9 páginas de 25 filas). |
+| `--target` | `int` | `225` (`None` con `--all`) | Número de enlaces únicos a descubrir en paginación. Si se omite al usar `--all`, recorre **todas** las páginas disponibles del rango de fechas. |
 | `--limit` | `int` | `100` | Cantidad de fichas individuales detalladas a visitar y extraer del DOM HTML. |
-| `--all` | *flag* | `False` | Si se incluye, ignora `--limit` y visita la totalidad de enlaces disponibles en `dataset/expedientes_ntsb.json`. |
+| `--all` | *flag* | `False` | Sin `--target`, descubre **todas** las páginas existentes del rango temporal y extrae **todas** las fichas (con guardado incremental cada 25 filas). |
+| `--resume` | *flag* | `True` en `extract` | Reanuda la extracción conservando las fichas ya guardadas en el CSV (activo por defecto en `--mode extract`). |
+| `--fresh` | *flag* | `False` | Fuerza una extracción limpia desde cero ignorando las filas previas del CSV. |
 | `--delay` | `float` | `1.5` | Tiempo base (segundos) para las pausas de cortesía con *jitter* y para la fórmula de backoff exponencial. |
 | `--headed` | *flag* | `False` | Abre Google Chrome con ventana gráfica visible en lugar de ejecutarse en segundo plano (*Headless*). |
 | `--links-json` | `Path` | `dataset/expedientes_ntsb.json` | Ruta de almacenamiento/lectura del archivo JSON de enlaces descubiertos. |
@@ -150,10 +152,13 @@ web-scraping-ntsb/
    python source/main.py --mode extract --limit 100 --delay 1.5
    ```
 
-3. **Extracción completa de todas las fichas descubiertas (`--all`) o prueba rápida acotada:**
+3. **Extracción completa de absolutamente todos los registros (`--all`) o prueba rápida acotada:**
 
    ```bash
-   # Procesar las 225 fichas descubiertas
+   # Recorrer TODAS las páginas del rango de fechas y extraer TODAS las fichas (checkpoint cada 25 filas)
+   python source/main.py --date-from 2024-12-01 --date-to 2024-12-31 --all --delay 1.5
+
+   # O procesar todas las fichas ya descubiertas previamente en dataset/expedientes_ntsb.json
    python source/main.py --mode extract --all --delay 1.5
 
    # Prueba rápida de validación (2 páginas de búsqueda y 5 fichas detalladas)

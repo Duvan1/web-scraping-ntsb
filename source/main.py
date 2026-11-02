@@ -53,8 +53,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--target",
         type=int,
-        default=225,
-        help="Cantidad de enlaces únicos a descubrir mediante paginación (default: 225).",
+        default=None,
+        help=(
+            "Enlaces únicos a descubrir en paginación "
+            "(default: 225, o sin límite si se indica --all)."
+        ),
     )
     parser.add_argument(
         "--limit",
@@ -66,7 +69,20 @@ def build_arg_parser() -> argparse.ArgumentParser:
         "--all",
         action="store_true",
         dest="process_all",
-        help="Procesa la totalidad de enlaces disponibles en el archivo JSON descubierto.",
+        help=(
+            "Descubre todas las páginas disponibles del rango de fechas "
+            "(si no se fija --target) y extrae todas las fichas."
+        ),
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Reanuda la extracción conservando las fichas ya presentes en el CSV.",
+    )
+    parser.add_argument(
+        "--fresh",
+        action="store_true",
+        help="Fuerza extracción limpia desde cero ignorando fichas previas en el CSV.",
     )
     parser.add_argument(
         "--delay",
@@ -118,10 +134,15 @@ def run_pipeline(config: ScraperConfig, mode: str) -> int:
     exporter = DatasetExporter(logger)
     html_parser = InvestigationHTMLParser()
 
-    with HeadlessBrowserManager(config, logger) as driver:
+    with HeadlessBrowserManager(config, logger) as browser:
         if mode in ("full", "discover"):
-            navigator = NTSBSearchNavigator(driver, config, backoff, logger)
-            discovered_links = navigator.discover_investigations()
+            navigator = NTSBSearchNavigator(browser, config, backoff, logger)
+            discovered_links = navigator.discover_investigations(
+                checkpoint_fn=lambda data: exporter.save_discovered_links(
+                    data,
+                    config.links_json_path,
+                ),
+            )
             exporter.save_discovered_links(discovered_links, config.links_json_path)
         else:
             discovered_links = exporter.load_discovered_links(config.links_json_path)
@@ -132,14 +153,26 @@ def run_pipeline(config: ScraperConfig, mode: str) -> int:
             )
 
         if mode in ("full", "extract"):
+            existing_records = (
+                exporter.load_existing_records(config.output_csv_path)
+                if config.resume
+                else []
+            )
             detail_scraper = NTSBDetailScraper(
-                driver=driver,
+                browser=browser,
                 config=config,
                 backoff=backoff,
                 parser=html_parser,
                 logger=logger,
             )
-            records = detail_scraper.scrape_batch(discovered_links)
+            records = detail_scraper.scrape_batch(
+                discovered_links,
+                existing_records=existing_records,
+                checkpoint_fn=lambda partial: exporter.export_records_to_csv(
+                    partial,
+                    config.output_csv_path,
+                ),
+            )
             exporter.export_records_to_csv(records, config.output_csv_path)
 
     elapsed = time.perf_counter() - start_time
@@ -150,12 +183,23 @@ def run_pipeline(config: ScraperConfig, mode: str) -> int:
 def main() -> int:
     """Parsea argumentos CLI y lanza la ejecución controlada del pipeline."""
     args = build_arg_parser().parse_args()
+    if args.target is not None:
+        target_links: int | None = max(1, args.target)
+    elif args.process_all:
+        target_links = None
+    else:
+        target_links = 225
+
+    # En modo 'extract' reanudamos por defecto salvo que el usuario pida '--fresh'
+    should_resume = False if args.fresh else (args.resume or args.mode == "extract")
+
     config = ScraperConfig(
         date_from=args.date_from,
         date_to=args.date_to,
-        target_links=max(1, args.target),
+        target_links=target_links,
         detail_limit=max(1, args.limit),
         process_all=args.process_all,
+        resume=should_resume,
         headless=not args.headed,
         base_delay=max(0.5, args.delay),
         links_json_path=args.links_json,
