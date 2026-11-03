@@ -8,10 +8,8 @@ Autores:
 
 from __future__ import annotations
 
-import calendar
 import logging
 import re
-from datetime import date
 from typing import Any
 
 from bs4 import BeautifulSoup
@@ -24,22 +22,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from browser import HeadlessBrowserManager
 from config import ScraperConfig
 from polite_policy import ExponentialBackoffPolicy
-
-
-def month_ranges(date_from: str, date_to: str) -> list[tuple[str, str]]:
-    """Divide [date_from, date_to] (YYYY-MM-DD) en meses naturales (inicio, fin)."""
-    start = date.fromisoformat(date_from)
-    end = date.fromisoformat(date_to)
-    ranges: list[tuple[str, str]] = []
-    year, month = start.year, start.month
-    while date(year, month, 1) <= end:
-        m_start = max(start, date(year, month, 1))
-        m_end = min(end, date(year, month, calendar.monthrange(year, month)[1]))
-        ranges.append((m_start.isoformat(), m_end.isoformat()))
-        month += 1
-        if month == 13:
-            year, month = year + 1, 1
-    return ranges
 
 
 class NTSBSearchNavigator:

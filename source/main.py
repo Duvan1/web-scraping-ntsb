@@ -10,7 +10,6 @@ Autores:
 from __future__ import annotations
 
 import argparse
-import dataclasses
 import sys
 import time
 from pathlib import Path
@@ -21,7 +20,7 @@ from detail_scraper import NTSBDetailScraper
 from exporter import DatasetExporter
 from html_parser import InvestigationHTMLParser
 from polite_policy import ExponentialBackoffPolicy, RobotsAuditor
-from search_navigator import NTSBSearchNavigator, month_ranges
+from search_navigator import NTSBSearchNavigator
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -111,27 +110,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def discover_links(driver, config: ScraperConfig, backoff, logger) -> list[dict]:
-    """Descubre enlaces: búsqueda única o muestreo estratificado por mes."""
-    if config.per_month <= 0:
-        return NTSBSearchNavigator(driver, config, backoff, logger).discover_investigations()
-
-    all_links: list[dict] = []
-    seen: set[str] = set()
-    for q_from, q_to in month_ranges(config.date_from, config.date_to):
-        q_config = dataclasses.replace(
-            config, date_from=q_from, date_to=q_to, target_links=config.per_month
-        )
-        logger.info("--- Mes %s a %s (objetivo: %d) ---", q_from, q_to, config.per_month)
-        navigator = NTSBSearchNavigator(driver, q_config, backoff, logger)
-        for item in navigator.discover_investigations():
-            if item["id"] not in seen:
-                seen.add(item["id"])
-                all_links.append(item)
-        backoff.courtesy_pause()
-    return all_links
-
-
 def run_pipeline(config: ScraperConfig, mode: str) -> int:
     """Orquesta la auditoría ética, el descubrimiento multipágina y la extracción DOM."""
     logger = setup_logger()
@@ -219,7 +197,6 @@ def main() -> int:
         date_from=args.date_from,
         date_to=args.date_to,
         target_links=target_links,
-        per_month=max(0, args.per_month),
         detail_limit=max(1, args.limit),
         process_all=args.process_all,
         resume=should_resume,
