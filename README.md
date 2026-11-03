@@ -1,12 +1,12 @@
 # Web Scraping de Accidentes e Incidentes de Aviación Civil (NTSB)
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23890895.svg)](https://doi.org/10.5281/zenodo.23890895)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23927968.svg)](https://doi.org/10.5281/zenodo.23927968)
 
-**Práctica 1: Web Scraping**  
-**Asignatura:** M2.851 - Tipología y ciclo de vida de los datos  
-**Titulación:** Máster Universitario en Ciencia de Datos  
-**Institución:** Universitat Oberta de Catalunya (UOC)  
-**DOI del Dataset (Zenodo):** [10.5281/zenodo.23890895](https://doi.org/10.5281/zenodo.23890895)  
+**Práctica 1: Web Scraping**
+**Asignatura:** M2.851 - Tipología y ciclo de vida de los datos
+**Titulación:** Máster Universitario en Ciencia de Datos
+**Institución:** Universitat Oberta de Catalunya (UOC)
+**DOI del Dataset (Zenodo):** [10.5281/zenodo.23927968]([https://doi.org/10.5281/zenodo.23927968](https://zenodo.org/records/23927968))
 
 ---
 
@@ -26,7 +26,7 @@ Este proyecto implementa un pipeline robusto, modular y reproducible de **Web Sc
 La arquitectura de recolección se articula en una estrategia metodológica desacoplada en **dos fases**, ambas ejecutadas con **Selenium Headless**, ya que tanto el buscador como las fichas individuales son aplicaciones dinámicas (React/JavaScript) que no exponen su contenido en el HTML estático:
 
 1. **Fase 1 - modo `discover` (Selenium Headless - Navegación y Paginación Dinámica):** automatización de la consulta interactiva en el portal público [NTSB CAROL (Aviation Search)](https://my.ntsb.gov/aviation), gestionando filtros temporales, interacción DOM, modales asíncronos y paginación reactiva en JavaScript mediante esperas explícitas (`WebDriverWait`). Genera el índice `dataset/expedientes_ntsb.json` con puntos de control (*checkpoints*) cada 10 páginas.
-2. **Fase 2 - modo `extract` (Selenium + BeautifulSoup / lxml - Extracción Técnica y Tipado):** cada enlace descubierto conduce a una página dinámica (<https://web.ntsb.gov/investigations/>) cuyo contenido (resumen del expediente, mapa georreferenciado, narrativa de causa probable, enlaces al *Docket* y pestañas desplegables de información técnica) se hidrata asíncronamente. El navegador espera la hidratación (`#rsStatus`), despliega las pestañas y el HTML resultante se sanea y parsea con `BeautifulSoup` + `lxml` y se tipa con `pandas`, soportando guardado incremental (cada 25 fichas), reanudación automática (`--resume`), reciclaje preventivo de memoria (cada 80 fichas) y auto-recuperación de sesión ante fallos del navegador.
+2. **Fase 2 - modo `extract` (Selenium + BeautifulSoup / lxml - Extracción Técnica y Tipado):** cada enlace descubierto conduce a una página dinámica ([https://web.ntsb.gov/investigations/](https://web.ntsb.gov/investigations/)) cuyo contenido (resumen del expediente, mapa georreferenciado, narrativa de causa probable, enlaces al *Docket* y pestañas desplegables de información técnica) se hidrata asíncronamente. El navegador espera la hidratación (`#rsStatus`), despliega las pestañas y el HTML resultante se sanea y parsea con `BeautifulSoup` + `lxml` y se tipa con `pandas`, soportando guardado incremental (cada 25 fichas), reanudación automática (`--resume`), reciclaje preventivo de memoria (cada 80 fichas) y auto-recuperación de sesión ante fallos del navegador.
 
 > **Nota:** la fase `extract` requiere el índice `dataset/expedientes_ntsb.json` (incluido en el repositorio; se regenera con `--mode discover` o `--mode full`).
 
@@ -101,30 +101,27 @@ web-scraping-ntsb/
 ### 5.2. Configuración Paso a Paso con Entorno Virtual (`venv`)
 
 1. **Clonar el repositorio y situarse en la carpeta raíz:**
-
+   
    ```bash
    git clone https://github.com/Duvan1/web-scraping-ntsb.git
    cd web-scraping-ntsb
    ```
-
 2. **Crear y activar el entorno virtual aislado:**
-  
+   
    * En **Linux / macOS**:
-
+     
      ```bash
      python3 -m venv venv
      source venv/bin/activate
      ```
-
    * En **Windows (CMD / PowerShell)**:
-
+     
      ```cmd
      python -m venv venv
      .\venv\Scripts\Activate
      ```
-
 3. **Actualizar `pip` e instalar las dependencias:**
-
+   
    ```bash
    python -m pip install --upgrade pip
    pip install -r source/requirements.txt
@@ -150,45 +147,41 @@ web-scraping-ntsb/
 ### 5.4. Ejemplos Replicables de Ejecución
 
 1. **Ejecución por fases con valores por defecto (225 enlaces descubiertos y extracción de todas las fichas descubiertas):**
-
+   
    ```bash
    python source/main.py --mode discover
    python source/main.py --mode extract --all --delay 1.5
    ```
-
 2. **Ejecución por fases acotada (descubrimiento de 225 enlaces y extracción de 100 fichas):**
-
+   
    ```bash
    python source/main.py --mode discover --date-from 2023-01-01 --date-to 2024-12-31 --target 225
    python source/main.py --mode extract --limit 100 --delay 1.5
    ```
-
 3. **Extracción completa de todos los registros del rango (`--all`), reanudación (`--resume`) o prueba rápida acotada:**
-
+   
    ```bash
    # Recorrer TODAS las páginas del rango de fechas y extraer TODAS las fichas (checkpoint cada 25 filas)
    python source/main.py --date-from 2023-01-01 --date-to 2024-12-31 --all --delay 1.5
-
+   
    # O reanudar / reiniciar desde cero (--fresh) sobre las fichas de dataset/expedientes_ntsb.json
    python source/main.py --mode extract --all --resume --delay 1.5
    python source/main.py --mode extract --limit 100 --fresh --delay 1.5
-
+   
    # Prueba rápida de validación (2 páginas de búsqueda y 5 fichas detalladas)
    python source/main.py --target 30 --limit 5 --delay 1.0
    ```
-
 4. **Ejecución con navegador visible para observar en vivo la navegación autónoma y apertura de pestañas:**
-
+   
    ```bash
    python source/main.py --target 25 --limit 3 --headed
    ```
-
 5. **Validación de calidad y generación de gráficos (EDA) sobre el CSV generado:**
-
+   
    ```bash
    python source/validar_dataset.py
    ```
-
+   
    Produce `dataset/informe_calidad_dataset.txt`, `dataset/grafico_top_fabricantes.png` y `dataset/grafico_severidad_accidentes.png`.
 
 ---
@@ -199,7 +192,7 @@ Todas las variables provienen directamente del **DOM HTML renderizado** en las p
 
 | Columna | Tipo | Origen en el DOM HTML | Descripción |
 | :--- | :--- | :--- | :--- |
-| `identificador` | `string` | `#rsNtsbNumber` / celda enlace `<a>` | Código único oficial del expediente NTSB (p. ej. `ANC25LA014`). |
+| `identificador` | `string` | `#rsNtsbNumber` / celda enlace `` | Código único oficial del expediente NTSB (p. ej. `ANC25LA014`). |
 | `fecha` | `string` (ISO) | `#rsDate` / fila `Event Date` | Fecha del accidente o incidente en formato `YYYY-MM-DD`. |
 | `estado_investigacion` | `string` | `#rsStatus` | Estado actual del expediente (`Completed`, `Ongoing`, `Open`). |
 | `ubicacion` | `string` | `#rsLocation` / filas `Event City..Country` | Ciudad, estado/región y país del suceso. |
@@ -227,23 +220,23 @@ Todas las variables provienen directamente del **DOM HTML renderizado** en las p
 El diseño y ejecución de esta práctica se rigen rigurosamente por los principios éticos y metodológicos de la investigación académica de la UOC:
 
 1. **Cumplimiento de `robots.txt`:**
+   
    * Previo a cualquier recolección, la clase `RobotsAuditor` (`source/polite_policy.py`) evalúa programáticamente el archivo oficial [robots.txt de la NTSB](https://www.ntsb.gov/robots.txt) utilizando `urllib.robotparser`.
    * Se certificó que las rutas públicas objetivo (`https://www.ntsb.gov/investigations/`, `https://my.ntsb.gov/aviation` y `https://web.ntsb.gov/investigations/`) tienen estado **PERMITIDO (`can_fetch: True`)** y no colisionan con ninguna directiva `Disallow` (verificadas junto a una ruta interna restringida de control `/_layouts/test.aspx`).
-
 2. **Naturaleza Legal de la Información (Dominio Público Federal):**
+   
    * La NTSB es una agencia federal independiente del gobierno de los Estados Unidos.
    * De conformidad con el título **17 U.S.C. § 105** (*Copyright Law of the United States*), las obras e informes elaborados por oficiales y empleados del gobierno federal de EE. UU. en el marco de sus funciones oficiales son de **Dominio Público** (*United States Government Works*), careciendo de derechos de autor privativos y autorizando su libre reutilización para fines educativos, analíticos y científicos.
-
 3. **Identificación Transparente (User-Agent Institucional):**
+   
    * Todas las peticiones HTTP (tanto en Selenium como en Requests) incluyen un encabezado de cabecera institucional claro:
-
+     
      ```http
      User-Agent: UOC_Academic_Scraper/1.0 (Contacto: dquevedoagu@uoc.edu, navilana@uoc.edu)
      ```
-
    * Permite a los administradores de sistemas identificar la naturaleza académica y no comercial del tráfico, así como el punto de contacto directo.
-
 4. **Scraping Responsable y Retardos de Cortesía:**
+   
    * La reutilización de sesión del navegador (con reciclaje preventivo de memoria cada 80 fichas y auto-recuperación ante desconexiones) minimiza la huella de tráfico en red. La clase `ExponentialBackoffPolicy` evita ráfagas deterministas añadiendo una componente aleatoria uniforme (*jitter*) a cada pausa de cortesía ($\Delta t = t_{\text{base}} + U(0.25, 0.75)$) e implementa **espera exponencial** ($t_k = t_{\text{base}} \cdot 2^k + \text{jitter}$) ante cualquier latencia o error transitorio del servidor.
 
 ---
@@ -252,3 +245,4 @@ El diseño y ejecución de esta práctica se rigen rigurosamente por los princip
 
 * **Código fuente:** Distribuido bajo la [Licencia MIT](https://opensource.org/licenses/MIT).
 * **Datos consolidados:** Los datos provienen de informes gubernamentales de dominio público (17 U.S.C. § 105) y se publican bajo la licencia [Creative Commons CC0 1.0 Universal (Public Domain Dedication)](https://creativecommons.org/publicdomain/zero/1.0/).
+
