@@ -34,10 +34,12 @@ class ScraperConfig:
 
     date_from: str = "2023-01-01"
     date_to: str = "2024-12-31"
-    target_links: int = 225
-    per_month: int = 0  # >0: muestreo estratificado (N enlaces por mes)
+    target_links: int | None = 225
     detail_limit: int = 100
     process_all: bool = False
+    resume: bool = False
+    checkpoint_every: int = 25
+    recycle_browser_every: int = 80
     headless: bool = True
 
     base_delay: float = 1.5

@@ -25,10 +25,10 @@ Este proyecto implementa un pipeline robusto, modular y reproducible de **Web Sc
 
 La arquitectura de recolección se articula en una estrategia metodológica desacoplada en **dos fases**, ambas ejecutadas con **Selenium Headless**, ya que tanto el buscador como las fichas individuales son aplicaciones dinámicas (React/JavaScript) que no exponen su contenido en el HTML estático:
 
-1. **Fase 1 - modo `discover` (Selenium Headless - Navegación y Paginación Dinámica):** automatización de la consulta interactiva en el portal público [NTSB CAROL (Aviation Search)](https://my.ntsb.gov/aviation), gestionando filtros temporales, interacción DOM, modales asíncronos y paginación reactiva en JavaScript mediante esperas explícitas (`WebDriverWait`). Genera el índice `dataset/expedientes_ntsb.json`.
-2. **Fase 2 - modo `extract` (Selenium + BeautifulSoup / lxml - Extracción Técnica y Tipado):** cada enlace descubierto conduce a una página dinámica (<https://web.ntsb.gov/investigations/>) cuyo contenido (resumen del expediente, mapa georreferenciado, narrativa de causa probable, enlaces al *Docket* y pestañas desplegables de información técnica) se hidrata asíncronamente. El navegador espera la hidratación (`#rsStatus`), despliega las pestañas y el HTML resultante se sanea y parsea con `BeautifulSoup` + `lxml` y se tipa con `pandas`.
+1. **Fase 1 - modo `discover` (Selenium Headless - Navegación y Paginación Dinámica):** automatización de la consulta interactiva en el portal público [NTSB CAROL (Aviation Search)](https://my.ntsb.gov/aviation), gestionando filtros temporales, interacción DOM, modales asíncronos y paginación reactiva en JavaScript mediante esperas explícitas (`WebDriverWait`). Genera el índice `dataset/expedientes_ntsb.json` con puntos de control (*checkpoints*) cada 10 páginas.
+2. **Fase 2 - modo `extract` (Selenium + BeautifulSoup / lxml - Extracción Técnica y Tipado):** cada enlace descubierto conduce a una página dinámica (<https://web.ntsb.gov/investigations/>) cuyo contenido (resumen del expediente, mapa georreferenciado, narrativa de causa probable, enlaces al *Docket* y pestañas desplegables de información técnica) se hidrata asíncronamente. El navegador espera la hidratación (`#rsStatus`), despliega las pestañas y el HTML resultante se sanea y parsea con `BeautifulSoup` + `lxml` y se tipa con `pandas`, soportando guardado incremental (cada 25 fichas), reanudación automática (`--resume`), reciclaje preventivo de memoria (cada 80 fichas) y auto-recuperación de sesión ante fallos del navegador.
 
-> **Nota:** la fase `extract` requiere el índice `dataset/expedientes_ntsb.json` (incluido en el repositorio; se regenera con `--mode discover`).
+> **Nota:** la fase `extract` requiere el índice `dataset/expedientes_ntsb.json` (incluido en el repositorio; se regenera con `--mode discover` o `--mode full`).
 
 3. **Validación de calidad - `source/validar_dataset.py`:** script independiente que audita el CSV final (unicidad de identificadores, nulos, tipos) y genera los gráficos y el informe usados en la memoria.
 
@@ -39,9 +39,9 @@ La arquitectura de recolección se articula en una estrategia metodológica desa
 El conjunto de datos resultante se encuentra publicado en abierto en el repositorio científico **Zenodo**:
 
 * **Título del nodo:** *NTSB Civil Aviation Accident Dataset (2023-2024)*
-* **Identificador DOI:** [`10.5281/zenodo.23890895`](https://doi.org/10.5281/zenodo.23890895)
-* **URL directa del registro:** [https://zenodo.org/records/23890895](https://zenodo.org/records/23890895)
-* **Versión:** v2 (muestra estratificada mensual, 216 registros 2023-2024). La v1 (10.5281/zenodo.23811523) contenía una muestra reducida y queda obsoleta.
+* **Identificador DOI:** [`10.5281/zenodo.23927968`](https://doi.org/10.5281/zenodo.23927968)
+* **URL directa del registro:** [https://zenodo.org/records/23927968](https://zenodo.org/records/23927968)
+* **Versión:** v3 (periodo 2023-2024). La v1 (10.5281/zenodo.23927968) contenía una muestra preliminar reducida y queda obsoleta.
 * **Autores:** Duván Quevedo y Neydor Gildardo Avila Navarrete
 * **Licencia de los datos:** Creative Commons CC0 1.0 Universal (*Public Domain Dedication*)
 
@@ -56,20 +56,20 @@ web-scraping-ntsb/
 ├── .gitignore                        # Exclusiones de Git (entornos virtuales, temporales)
 ├── README.md                         # Documentación técnica, ética y guía de replicación
 ├── dataset/                          
-│   ├── expedientes_ntsb.json         # Muestra estratificada (mes a mes) de URLs e identificadores
+│   ├── expedientes_ntsb.json         # Índice de URLs, identificadores y metadatos preliminares descubiertos
 │   ├── dataset_ntsb_2023_2024.csv    # Dataset tabular extraído desde el DOM HTML de las fichas
-│   ├── informe_calidad_dataset.txt   # Informe de auditoría de calidad (validar_dataset.py)
-│   ├── grafico_top_fabricantes.png   # Gráfico para la memoria (validar_dataset.py)
-│   └── grafico_severidad_accidentes.png  # Gráfico para la memoria (validar_dataset.py)
+│   ├── informe_calidad_dataset.txt   # Informe de auditoría de calidad (generado por validar_dataset.py)
+│   ├── grafico_top_fabricantes.png   # Gráfico para la memoria (generado por validar_dataset.py)
+│   └── grafico_severidad_accidentes.png  # Gráfico para la memoria (generado por validar_dataset.py)
 └── source/
     ├── requirements.txt              # Especificación de dependencias de Python
     ├── config.py                     # Clase ScraperConfig (dataclass) y configuración de logging UTF-8
     ├── polite_policy.py              # Clases RobotsAuditor y ExponentialBackoffPolicy (backoff + jitter)
-    ├── browser.py                    # Clase HeadlessBrowserManager (context manager Selenium Chrome)
+    ├── browser.py                    # Clase HeadlessBrowserManager (context manager, reciclaje y auto-restart)
     ├── search_navigator.py           # Clase NTSBSearchNavigator (formulario React y paginación multipágina)
     ├── html_parser.py                # Clase InvestigationHTMLParser (parseo DOM con BeautifulSoup / lxml)
-    ├── detail_scraper.py             # Clase NTSBDetailScraper (navegación autónoma e hidratación de pestañas)
-    ├── exporter.py                   # Clase DatasetExporter (persistencia JSON y exportación CSV UTF-8)
+    ├── detail_scraper.py             # Clase NTSBDetailScraper (navegación autónoma, hidratación y reanudación)
+    ├── exporter.py                   # Clase DatasetExporter (persistencia atómica JSON/CSV UTF-8 y reanudación)
     ├── main.py                       # Punto de entrada CLI unificado (argparse) y orquestación del flujo
     └── validar_dataset.py            # Auditoría de calidad, EDA y generación de gráficos (matplotlib)
 ```
@@ -78,13 +78,13 @@ web-scraping-ntsb/
 
 | Módulo | Clase Principal | Reutilización |
 | :--- | :--- | :--- |
-| `source/config.py` | `ScraperConfig` | Centraliza constantes institucionales, `User-Agent`, rutas y parámetros de espera sin duplicación. |
+| `source/config.py` | `ScraperConfig` | Centraliza constantes institucionales, `User-Agent`, rutas, checkpoints y parámetros de espera sin duplicación. |
 | `source/polite_policy.py` | `RobotsAuditor`, `ExponentialBackoffPolicy` | Audita `robots.txt` (`Crawl-delay` / `can_fetch`) y reutiliza pausas con *jitter* y reintentos exponenciales en todo el scraper. |
-| `source/browser.py` | `HeadlessBrowserManager` | Gestiona el ciclo de vida seguro (`__enter__`/`__exit__`) de una única instancia reutilizada de Chrome WebDriver. |
-| `source/search_navigator.py` | `NTSBSearchNavigator` | Interactúa con el buscador React CAROL, despacha eventos JS nativos, pagina resultados y descubre hipervínculos. |
+| `source/browser.py` | `HeadlessBrowserManager` | Gestiona el ciclo de vida seguro (`__enter__`/`__exit__`), el reciclaje preventivo de RAM (cada 80 fichas) y la auto-recuperación de Chrome WebDriver. |
+| `source/search_navigator.py` | `NTSBSearchNavigator` | Interactúa con el buscador React CAROL, despacha eventos JS nativos, pagina resultados (con checkpoint cada 10 páginas) y descubre hipervínculos. |
 | `source/html_parser.py` | `InvestigationHTMLParser` | Desacopla el análisis sintáctico del HTML (`BeautifulSoup` + `lxml`) respecto del navegador para facilitar mantenimiento. |
-| `source/detail_scraper.py` | `NTSBDetailScraper` | Visita autónomamente cada URL descubierta, espera hidratación asíncrona `#rsStatus` y despliega las pestañas del DOM. |
-| `source/exporter.py` | `DatasetExporter` | Lee/escribe el índice JSON de enlaces y exporta el `DataFrame` crudo a CSV (`utf-8-sig`) dentro de `dataset/`. |
+| `source/detail_scraper.py` | `NTSBDetailScraper` | Visita autónomamente cada URL descubierta, espera hidratación asíncrona `#rsStatus`, despliega pestañas del DOM, guarda checkpoints (cada 25 fichas) y soporta reanudación incremental. |
+| `source/exporter.py` | `DatasetExporter` | Lee/escribe atómicamente (`.tmp`) el índice JSON de enlaces, recupera registros previos para reanudación y exporta el `DataFrame` tipado a CSV (`utf-8-sig`) dentro de `dataset/`. |
 | `source/main.py` | CLI (`main`, `run_pipeline`) | Expone los parámetros por consola y coordina las fases `full`, `discover` y `extract`. |
 | `source/validar_dataset.py` | Script independiente | Audita unicidad de IDs, nulos y tipos del CSV final y genera los gráficos PNG e `informe_calidad_dataset.txt`. |
 
@@ -116,7 +116,7 @@ web-scraping-ntsb/
      source venv/bin/activate
      ```
 
-      * En **Windows (CMD)**:
+   * En **Windows (CMD / PowerShell)**:
 
      ```cmd
      python -m venv venv
@@ -137,10 +137,11 @@ web-scraping-ntsb/
 | `--mode` | `{full,discover,extract}` | `full` | `full`: ejecuta auditoría + descubrimiento + extracción DOM; `discover`: solo descubre enlaces; `extract`: extrae fichas desde el JSON previo. |
 | `--date-from` | `YYYY-MM-DD` | `2023-01-01` | Fecha inicial del filtro temporal de sucesos en el buscador CAROL. |
 | `--date-to` | `YYYY-MM-DD` | `2024-12-31` | Fecha final del filtro temporal de sucesos en el buscador CAROL. |
-| `--target` | `int` | `225` | Número mínimo de enlaces únicos a descubrir recorriendo la paginación dinámica (~9 páginas de 25 filas). |
-| `--per-month` | `int` | `0` | Muestreo estratificado: descubre N enlaces por cada mes del rango (ignora `--target`). Garantiza que la muestra cubra todo el periodo 2023-2024. |
-| `--limit` | `int` | `100` | Cantidad de fichas individuales detalladas a visitar y extraer del DOM HTML. |
-| `--all` | *flag* | `False` | Si se incluye, ignora `--limit` y visita la totalidad de enlaces disponibles en `dataset/expedientes_ntsb.json`. |
+| `--target` | `int` | `225` (`None` con `--all`) | Número de enlaces únicos a descubrir en paginación (~9 páginas de 25 filas). Si se omite al usar `--all`, recorre **todas** las páginas disponibles del rango de fechas. |
+| `--limit` | `int` | `100` | Cantidad de fichas individuales detalladas a visitar y extraer del DOM HTML (ignorado si se indica `--all`). |
+| `--all` | *flag* | `False` | Sin `--target`, descubre **todas** las páginas existentes del rango temporal y extrae **todas** las fichas (con guardado incremental cada 25 filas). |
+| `--resume` | *flag* | `True` en `extract` | Reanuda la extracción conservando las fichas ya guardadas en el CSV (activo por defecto en `--mode extract`). |
+| `--fresh` | *flag* | `False` | Fuerza una extracción limpia desde cero ignorando las filas previas del CSV. |
 | `--delay` | `float` | `1.5` | Tiempo base (segundos) para las pausas de cortesía con *jitter* y para la fórmula de backoff exponencial. |
 | `--headed` | *flag* | `False` | Abre Google Chrome con ventana gráfica visible en lugar de ejecutarse en segundo plano (*Headless*). |
 | `--links-json` | `Path` | `dataset/expedientes_ntsb.json` | Ruta de almacenamiento/lectura del archivo JSON de enlaces descubiertos. |
@@ -148,25 +149,31 @@ web-scraping-ntsb/
 
 ### 5.4. Ejemplos Replicables de Ejecución
 
-1. **Replicación del dataset entregado (muestra estratificada: 9 enlaces por mes × 24 meses = 216 fichas):**
+1. **Ejecución por fases con valores por defecto (225 enlaces descubiertos y extracción de todas las fichas descubiertas):**
 
    ```bash
-   python source/main.py --mode discover --per-month 9
+   python source/main.py --mode discover
    python source/main.py --mode extract --all --delay 1.5
    ```
 
-   > **Por qué estratificada:** CAROL devuelve los eventos del más reciente al más antiguo. Un descubrimiento simple (`--target N`) solo recorrería los últimos meses de 2024; `--per-month` consulta cada mes por separado y asegura cobertura de todo el periodo. Dentro de cada mes se toman los eventos más recientes, por lo que la muestra **no es aleatoria** (limitación a considerar en el análisis).
-
-2. **Ejecución por fases con descubrimiento simple (sin estratificar):**
+2. **Ejecución por fases acotada (descubrimiento de 225 enlaces y extracción de 100 fichas):**
 
    ```bash
    python source/main.py --mode discover --date-from 2023-01-01 --date-to 2024-12-31 --target 225
    python source/main.py --mode extract --limit 100 --delay 1.5
    ```
 
-3. **Prueba rápida acotada (2 páginas de búsqueda y 5 fichas detalladas):**
+3. **Extracción completa de todos los registros del rango (`--all`), reanudación (`--resume`) o prueba rápida acotada:**
 
    ```bash
+   # Recorrer TODAS las páginas del rango de fechas y extraer TODAS las fichas (checkpoint cada 25 filas)
+   python source/main.py --date-from 2023-01-01 --date-to 2024-12-31 --all --delay 1.5
+
+   # O reanudar / reiniciar desde cero (--fresh) sobre las fichas de dataset/expedientes_ntsb.json
+   python source/main.py --mode extract --all --resume --delay 1.5
+   python source/main.py --mode extract --limit 100 --fresh --delay 1.5
+
+   # Prueba rápida de validación (2 páginas de búsqueda y 5 fichas detalladas)
    python source/main.py --target 30 --limit 5 --delay 1.0
    ```
 
@@ -221,7 +228,7 @@ El diseño y ejecución de esta práctica se rigen rigurosamente por los princip
 
 1. **Cumplimiento de `robots.txt`:**
    * Previo a cualquier recolección, la clase `RobotsAuditor` (`source/polite_policy.py`) evalúa programáticamente el archivo oficial [robots.txt de la NTSB](https://www.ntsb.gov/robots.txt) utilizando `urllib.robotparser`.
-   * Se certificó que las rutas públicas objetivo (`/Pages/AviationQuery.aspx`, `/aviation` e `/investigations/*`) tienen estado **PERMITIDO (`can_fetch: True`)** y no colisionan con ninguna directiva `Disallow`.
+   * Se certificó que las rutas públicas objetivo (`https://www.ntsb.gov/investigations/`, `https://my.ntsb.gov/aviation` y `https://web.ntsb.gov/investigations/`) tienen estado **PERMITIDO (`can_fetch: True`)** y no colisionan con ninguna directiva `Disallow` (verificadas junto a una ruta interna restringida de control `/_layouts/test.aspx`).
 
 2. **Naturaleza Legal de la Información (Dominio Público Federal):**
    * La NTSB es una agencia federal independiente del gobierno de los Estados Unidos.
@@ -237,7 +244,7 @@ El diseño y ejecución de esta práctica se rigen rigurosamente por los princip
    * Permite a los administradores de sistemas identificar la naturaleza académica y no comercial del tráfico, así como el punto de contacto directo.
 
 4. **Scraping Responsable y Retardos de Cortesía:**
-   * Una única sesión de navegador reutilizada minimiza la huella de tráfico en red. La clase `ExponentialBackoffPolicy` evita ráfagas deterministas añadiendo una componente aleatoria uniforme (*jitter*) a cada pausa de cortesía ($\Delta t = t_{\text{base}} + U(0.25, 0.75)$) e implementa **espera exponencial** ($t_k = t_{\text{base}} \cdot 2^k + \text{jitter}$) ante cualquier latencia o error transitorio del servidor.
+   * La reutilización de sesión del navegador (con reciclaje preventivo de memoria cada 80 fichas y auto-recuperación ante desconexiones) minimiza la huella de tráfico en red. La clase `ExponentialBackoffPolicy` evita ráfagas deterministas añadiendo una componente aleatoria uniforme (*jitter*) a cada pausa de cortesía ($\Delta t = t_{\text{base}} + U(0.25, 0.75)$) e implementa **espera exponencial** ($t_k = t_{\text{base}} \cdot 2^k + \text{jitter}$) ante cualquier latencia o error transitorio del servidor.
 
 ---
 

@@ -8,10 +8,8 @@ Autores:
 
 from __future__ import annotations
 
-import calendar
 import logging
 import re
-from datetime import date
 from typing import Any
 
 from bs4 import BeautifulSoup
@@ -21,24 +19,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from browser import HeadlessBrowserManager
 from config import ScraperConfig
 from polite_policy import ExponentialBackoffPolicy
-
-
-def month_ranges(date_from: str, date_to: str) -> list[tuple[str, str]]:
-    """Divide [date_from, date_to] (YYYY-MM-DD) en meses naturales (inicio, fin)."""
-    start = date.fromisoformat(date_from)
-    end = date.fromisoformat(date_to)
-    ranges: list[tuple[str, str]] = []
-    year, month = start.year, start.month
-    while date(year, month, 1) <= end:
-        m_start = max(start, date(year, month, 1))
-        m_end = min(end, date(year, month, calendar.monthrange(year, month)[1]))
-        ranges.append((m_start.isoformat(), m_end.isoformat()))
-        month += 1
-        if month == 13:
-            year, month = year + 1, 1
-    return ranges
 
 
 class NTSBSearchNavigator:
@@ -53,23 +36,33 @@ class NTSBSearchNavigator:
 
     def __init__(
         self,
-        driver: webdriver.Chrome,
+        browser: HeadlessBrowserManager,
         config: ScraperConfig,
         backoff: ExponentialBackoffPolicy,
         logger: logging.Logger,
     ) -> None:
-        self._driver = driver
+        self._browser = browser
         self._config = config
         self._backoff = backoff
         self._logger = logger
-        self._wait = WebDriverWait(driver, config.explicit_wait_seconds)
 
-    def discover_investigations(self) -> list[dict[str, Any]]:
-        """Ejecuta la búsqueda por fechas y recorre páginas hasta cubrir target_links."""
+    @property
+    def _driver(self) -> webdriver.Chrome:
+        return self._browser.driver
+
+    def _wait(self, seconds: int | None = None) -> WebDriverWait[webdriver.Chrome]:
+        timeout = seconds if seconds is not None else self._config.explicit_wait_seconds
+        return WebDriverWait(self._driver, timeout)
+
+    def discover_investigations(
+        self,
+        checkpoint_fn: Any | None = None,
+    ) -> list[dict[str, Any]]:
+        """Ejecuta la búsqueda por fechas y pagina hasta target_links o fin de páginas."""
         self._logger.info("Navegando al portal dinámico CAROL: %s", self._config.search_url)
         self._backoff.run_with_backoff(
             "Carga inicial de buscador CAROL",
-            lambda: self._driver.get(self._config.search_url),
+            self._open_search_portal,
         )
 
         self._dismiss_announcement_modal()
@@ -78,20 +71,29 @@ class NTSBSearchNavigator:
         discovered: list[dict[str, Any]] = []
         seen_ids: set[str] = set()
         page_number = 1
+        target = self._config.target_links
+        target_label = str(target) if target is not None else "TODOS"
 
-        while len(discovered) < self._config.target_links:
+        while target is None or len(discovered) < target:
             new_items = self._extract_current_page_rows(seen_ids)
             discovered.extend(new_items)
 
             self._logger.info(
-                "Página %2d procesada: +%2d enlaces descubiertos (acumulado: %d/%d).",
+                "Página %3d procesada: +%2d enlaces descubiertos (acumulado: %d/%s).",
                 page_number,
                 len(new_items),
                 len(discovered),
-                self._config.target_links,
+                target_label,
             )
 
-            if len(discovered) >= self._config.target_links:
+            if checkpoint_fn is not None and page_number % 10 == 0:
+                checkpoint_fn(discovered)
+
+            if not new_items:
+                self._logger.info("Sin nuevos registros en la página actual; fin de resultados.")
+                break
+
+            if target is not None and len(discovered) >= target:
                 break
 
             if not self._advance_to_next_page():
@@ -100,13 +102,21 @@ class NTSBSearchNavigator:
 
             page_number += 1
 
-        return discovered[: self._config.target_links]
+        return discovered[:target] if target is not None else discovered
+
+    def _open_search_portal(self) -> None:
+        """Abre la URL del buscador recuperando el navegador si la sesión cayó."""
+        try:
+            self._driver.get(self._config.search_url)
+        except Exception:
+            if not self._browser.is_session_alive():
+                self._browser.restart(reason="fallo al abrir buscador CAROL")
+            raise
 
     def _dismiss_announcement_modal(self) -> None:
         """Cierra el diálogo modal emergente si el portal lo muestra al iniciar."""
         try:
-            short_wait = WebDriverWait(self._driver, 6)
-            close_btn = short_wait.until(
+            close_btn = self._wait(6).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, self.MODAL_CLOSE_CSS))
             )
             close_btn.click()
@@ -121,7 +131,7 @@ class NTSBSearchNavigator:
             self._config.date_from,
             self._config.date_to,
         )
-        input_from = self._wait.until(
+        input_from = self._wait().until(
             EC.presence_of_element_located((By.CSS_SELECTOR, self.DATE_FROM_CSS))
         )
         input_to = self._driver.find_element(By.CSS_SELECTOR, self.DATE_TO_CSS)
@@ -149,7 +159,7 @@ class NTSBSearchNavigator:
 
         search_btn = self._driver.find_element(By.CSS_SELECTOR, self.SEARCH_BTN_CSS)
         self._driver.execute_script("arguments[0].click();", search_btn)
-        self._wait.until(
+        self._wait().until(
             EC.presence_of_element_located((By.CSS_SELECTOR, self.RESULT_ROW_CSS))
         )
 
@@ -239,7 +249,7 @@ class NTSBSearchNavigator:
             btn = self._driver.find_element(By.CSS_SELECTOR, self.NEXT_PAGE_CSS)
             self._driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", btn)
             self._driver.execute_script("arguments[0].click();", btn)
-            self._wait.until(lambda _: self._read_first_row_id() != previous_first_id)
+            self._wait().until(lambda _: self._read_first_row_id() != previous_first_id)
 
         try:
             self._backoff.run_with_backoff(

@@ -1,4 +1,4 @@
-"""Exportación estructurada de enlaces descubiertos y dataset tabular crudo.
+"""Exportación atómica y carga de reanudación para enlaces y dataset tabular.
 
 Asignatura: M2.851 - Tipología y ciclo de vida de los datos (PRA1: Web Scraping)
 Autores:
@@ -17,7 +17,7 @@ import pandas as pd
 
 
 class DatasetExporter:
-    """Persiste los artefactos de datos recolectados exclusivamente en dataset/."""
+    """Persiste y recupera artefactos de datos recolectados en dataset/."""
 
     COLUMN_ORDER: tuple[str, ...] = (
         "identificador",
@@ -46,10 +46,12 @@ class DatasetExporter:
         self._logger = logger
 
     def save_discovered_links(self, links: list[dict[str, Any]], output_path: Path) -> None:
-        """Guarda en formato JSON los enlaces e identificadores descubiertos en la búsqueda."""
+        """Guarda atómicamente en JSON los enlaces descubiertos en la búsqueda."""
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        with output_path.open("w", encoding="utf-8") as handle:
+        temp_path = output_path.with_suffix(".json.tmp")
+        with temp_path.open("w", encoding="utf-8") as handle:
             json.dump(links, handle, indent=2, ensure_ascii=False)
+        temp_path.replace(output_path)
         self._logger.info(
             "Enlaces descubiertos almacenados en %s (%d registros).",
             output_path,
@@ -66,12 +68,25 @@ class DatasetExporter:
         with input_path.open("r", encoding="utf-8") as handle:
             return json.load(handle)
 
+    def load_existing_records(self, csv_path: Path) -> list[dict[str, Any]]:
+        """Carga registros previos del CSV para reanudar ejecuciones largas sin repetir."""
+        if not csv_path.exists() or csv_path.stat().st_size == 0:
+            return []
+
+        df = pd.read_csv(csv_path, encoding="utf-8-sig", dtype=str)
+        if df.empty or "identificador" not in df.columns:
+            return []
+
+        clean_df = df.where(pd.notna(df), None)
+        records: list[dict[str, Any]] = clean_df.to_dict(orient="records")
+        return [r for r in records if r.get("identificador")]
+
     def export_records_to_csv(
         self,
         records: list[dict[str, Any]],
         output_path: Path,
     ) -> pd.DataFrame:
-        """Estructura los registros extraídos del DOM en un DataFrame y exporta a CSV UTF-8."""
+        """Estructura los registros extraídos en un DataFrame y escribe CSV de forma atómica."""
         output_path.parent.mkdir(parents=True, exist_ok=True)
         df = pd.DataFrame(records)
 
@@ -83,7 +98,7 @@ class DatasetExporter:
                     df[col] = pd.NA
             df = df[list(self.COLUMN_ORDER)]
 
-            # Representación de tipos sin alterar ni imputar los valores originales extraídos
+            # Representación de tipos sin alterar ni imputar valores originales extraídos
             int_cols = ("fallecidos", "heridos_graves")
             float_cols = (
                 "latitud",
@@ -97,7 +112,9 @@ class DatasetExporter:
             for col in float_cols:
                 df[col] = pd.to_numeric(df[col], errors="coerce").astype("float64")
 
-        df.to_csv(output_path, index=False, encoding="utf-8-sig")
+        temp_path = output_path.with_suffix(".csv.tmp")
+        df.to_csv(temp_path, index=False, encoding="utf-8-sig")
+        temp_path.replace(output_path)
         self._logger.info(
             "Dataset exportado en %s (%d filas x %d columnas).",
             output_path,
