@@ -185,9 +185,20 @@ class InvestigationHTMLParser:
 
         return (
             make or cls._clean_placeholder(link_entry.get("table_make")),
-            model or cls._clean_placeholder(link_entry.get("table_model")),
+            cls.clean_model(model or cls._clean_placeholder(link_entry.get("table_model"))),
             registration or cls._clean_placeholder(link_entry.get("table_registration")),
         )
+
+    @staticmethod
+    def clean_model(model: str | None) -> str | None:
+        """Descarta los vehículos adicionales en colisiones (p. ej. 'A320, PS-CNBB : CESSNA/208' -> 'A320').
+
+        En eventos con varias aeronaves la ficha concatena 'matrícula : fabricante/modelo' del
+        segundo vehículo; se conserva únicamente el modelo de la aeronave principal.
+        """
+        if model and ":" in model:
+            return model.split(",")[0].strip() or None
+        return model
 
     @classmethod
     def _extract_injury_counts(
