@@ -1,0 +1,67 @@
+================================================================================
+INFORME DE AUDITORÍA DE CALIDAD Y ANÁLISIS EXPLORATORIO (EDA)
+M2.851 - Tipología y ciclo de vida de los datos (UOC)
+================================================================================
+Archivo analizado: D:\UOC\Tipologia\web-scraping-ntsb\dataset\dataset_ntsb_2023_2024.csv
+Total de registros (filas):    3364
+Total de variables (columnas): 20
+
+1. CONTROL DE UNICIDAD E IDENTIFICADORES:
+   - Columna identificador evaluada: 'identificador'
+   - Identificadores únicos:         3364 de 3364
+   - Resultado de unicidad:          CONFIRMADO [100% registros únicos, 0 duplicados]
+   - Duplicados globales completos:  0
+
+2. COMPLETITUD Y ANÁLISIS DE VALORES NULOS POR COLUMNA:
+   Columna            | Tipo Pandas     | No Nulos  | Nulos  | % Nulos  | Completitud
+   --------------------------------------------------------------------------
+   identificador      | string          | 3364      | 0      |    0.0% |  100.0%
+   fecha              | datetime64[us]  | 3364      | 0      |    0.0% |  100.0%
+   estado_investigacion | string          | 3364      | 0      |    0.0% |  100.0%
+   ubicacion          | string          | 3364      | 0      |    0.0% |  100.0%
+   latitud            | float64         | 2415      | 949    |   28.2% |   71.8%
+   longitud           | float64         | 2415      | 949    |   28.2% |   71.8%
+   fabricante         | string          | 3364      | 0      |    0.0% |  100.0%
+   modelo             | string          | 3362      | 2      |    0.1% |   99.9%
+   matricula          | string          | 3364      | 0      |    0.0% |  100.0%
+   operador           | string          | 2370      | 994    |   29.5% |   70.5%
+   normativa_vuelo    | string          | 2414      | 950    |   28.2% |   71.8%
+   danos_aeronave     | string          | 2303      | 1061   |   31.5% |   68.5%
+   fallecidos         | Int64           | 2772      | 592    |   17.6% |   82.4%
+   heridos_graves     | Int64           | 2772      | 592    |   17.6% |   82.4%
+   visibilidad_sm     | float64         | 2271      | 1093   |   32.5% |   67.5%
+   temperatura_f      | float64         | 2360      | 1004   |   29.8% |   70.2%
+   velocidad_viento_kts | float64         | 1875      | 1489   |   44.3% |   55.7%
+   causa_probable     | string          | 2348      | 1016   |   30.2% |   69.8%
+   url_docket         | string          | 3364      | 0      |    0.0% |  100.0%
+   url_expediente     | string          | 3364      | 0      |    0.0% |  100.0%
+
+3. MÉTRICAS CLAVE Y ANÁLISIS EXPLORATORIO:
+   - Total de víctimas mortales:     586
+   - Máximo de víctimas en un evento: 7
+   - Promedio de víctimas mortales:  0.21
+   - Accidentes con víctimas mortales: 366 (10.9% del total)
+   - Total de heridos graves:        419
+
+4. DISTRIBUCIÓN POR DAÑO EN LA AERONAVE:
+   - Substantial                 : 2059 ( 61.2%)
+   - Sin dato                    : 1061 ( 31.5%)
+   - Destroyed                   : 210 (  6.2%)
+   - Minor                       : 31 (  0.9%)
+   - Unknown                     :  3 (  0.1%)
+
+5. TOP 5 FABRICANTES MÁS FRECUENTES EN EL DATASET:
+   1. CESSNA                        : 738 eventos
+   2. PIPER                         : 464 eventos
+   3. BOEING                        : 316 eventos
+   4. BEECH                         : 162 eventos
+   5. AIRBUS                        : 76 eventos
+
+6. DICTAMEN DE CONFORMIDAD TÉCNICA:
+   [OK] Unicidad del identificador: sin duplicados.
+   [OK] Tipado Pandas verificado (string, datetime64[ns], Int64, float64).
+   [AVISO] Columnas con >25% de nulos: velocidad_viento_kts (44%), visibilidad_sm (32%), danos_aeronave (32%), causa_probable (30%), temperatura_f (30%), operador (30%), normativa_vuelo (28%), latitud (28%), longitud (28%).
+           Los nulos son estructurales: expedientes 'Ongoing'/'Open' aún sin
+           causa probable ni datos finales publicados por la NTSB (no se imputan).
+   [OK] Gráficos de apoyo para la Memoria PDF generados.
+================================================================================
